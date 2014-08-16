@@ -1,13 +1,14 @@
 {
-  "name": "application-name",
+  "name": "imap-peeper",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./index.js"
   },
   "dependencies": {
     "redis" : "0.10.0",
     "debug": "~0.7.4",
-    "notices": "0.2.2"
+    "notices": "0.2.2",
+    "contextio": "~0.4.0"
   }
 }
