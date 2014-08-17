@@ -10,6 +10,7 @@
     "debug": "~0.7.4",
     "notices": "0.2.2",
     "contextio": "~0.4.0",
-    "async": "0.2.9"
+    "async": "0.2.9",
+    "mongoose": "3.8.8"
   }
 }
