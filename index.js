@@ -1,7 +1,11 @@
 var async = require('async');
 var extras = require('./extras');
 var redis = require('./redisClient');
-var notifier = require('./notifier');
+var notices = require('notices')({
+	"host":"josh-redis.cloudapp.net"
+});
+var notifier = {};
+notices.notify(notifier);
 var emailApi = require('./contextIOClient');
 redis.redisClient.on("error", function (err) {
     console.log("Error: " + err);
@@ -48,7 +52,7 @@ function execute(){
 									Id:message.message_id
 								}
 								//publish each message to Redis channel
-								notifier.notify(payload);
+								notifier.notifyPublish('imappeeper:newMessage', payload);
 							}
 						});
 					});
