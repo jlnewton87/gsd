@@ -1,3 +1,4 @@
+var redisClient = require('./redisClient');
 var ContextIO = require('contextio');
 var ctxioClient = new ContextIO.Client({
 	key: "x4h1wk9g",
@@ -5,18 +6,15 @@ var ctxioClient = new ContextIO.Client({
 });
 
 var client = {
-	getNewMessages:function(id, callback){
-		ctxioClient.accounts(id).messages().get({}, function(err, resp){
-			callback(err, resp)
+	getNewMessages : function(id, callback){
+		redisClient.getLastSeen(id, function(err, lastSeen){
+			ctxioClient.accounts(id).messages().get({date_after:lastSeen}, function(err, resp){
+				callback(err, resp)
+			});
 		});
 	},
-	getUnixTimestamp:function(dateObject){
-		if (typeof dateObject.getSeconds() === 'number') {
-			return Math.round((dateObject).getTime() / 1000);
-		}
-		else{
-			return null;
-		}
+	syncAccount : function(id){
+		ctxioClient.accounts(id).sync().get();
 	}
 };
 
