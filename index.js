@@ -3,12 +3,15 @@
 	//if new mail - broadcast message
 	//else - rest
 var async = require('async');
+var extras = require('./extras');
 var client = require('./redisClient');
 var notifier = require('./notifier');
 var emailApi = require('./contextIOClient');
 client.redisClient.on("error", function (err) {
     console.log("Error: " + err);
 });
+
+extras.initialize();
 
 execute();
 
@@ -54,4 +57,5 @@ function execute(){
 			});
 		}
 	});
+	extras.endSession();
 }
