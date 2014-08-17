@@ -14,9 +14,13 @@ var client = {
 		});
 	},
 	setLastSeen : function(userId, lastSeen){
-		this.redisClient.set('imappeeper:users:lastSeen:' + userId, lastSeen);
+		this.redisClient.set('imappeeper:users:lastSeen:' + userId, lastSeen + 1);
+	},
+	addMessage : function(message, callback){
+		this.redisClient.set('imappeeper:messages:' + message.message_id, JSON.stringify(message), function(err){
+			callback(err);
+		});
 	}
-
 }
 
 
