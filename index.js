@@ -33,7 +33,7 @@ function execute(){
 						newMessages.push(newMessage);
 					};
 					if (resp.body.length > 0) {
-						redis.setLastSeen(user.Id, resp.body[resp.body.length - 1].date);
+						redis.setLastSeen(user.Id, resp.body[0].date);
 					}
 					callback();
 					//sync this account, so new messages can be picked up next time
@@ -52,6 +52,7 @@ function execute(){
 									Id:message.message_id
 								}
 								//publish each message to Redis channel
+								console.log(payload);
 								notifier.notifyPublish('imappeeper:newMessage', payload);
 							}
 						});
