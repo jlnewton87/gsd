@@ -1,13 +1,9 @@
-//load user records
-//on interval - check for new mail
-	//if new mail - broadcast message
-	//else - rest
 var async = require('async');
 var extras = require('./extras');
-var client = require('./redisClient');
+var redis = require('./redisClient');
 var notifier = require('./notifier');
 var emailApi = require('./contextIOClient');
-client.redisClient.on("error", function (err) {
+redis.redisClient.on("error", function (err) {
     console.log("Error: " + err);
 });
 
@@ -20,11 +16,12 @@ setInterval(function(){
 }, 60000);
 
 function execute(){
-	client.getUsers(function(err, result){
+	redis.getUsers(function(err, result){
 		if(err){console.log(err);}
 		else{
 			var newMessages = [];
 			async.each(result, function(user, callback){
+				//get new messages for each user
 				emailApi.getNewMessages(user.Id, function(err, resp){
 					for (var i = 0; i < resp.body.length; i++) {
 						var newMessage = resp.body[i];
@@ -32,22 +29,25 @@ function execute(){
 						newMessages.push(newMessage);
 					};
 					if (resp.body.length > 0) {
-						client.setLastSeen(user.Id, resp.body[resp.body.length - 1].date);
+						redis.setLastSeen(user.Id, resp.body[resp.body.length - 1].date);
 					}
 					callback();
+					//sync this account, so new messages can be picked up next time
 					emailApi.syncAccount(user.Id);
 				});
 			}, function(err){
 				if(err){console.log('Error getting new messages -> ' + err);}
 				else{
 					async.each(newMessages, function(message, callback){
-						client.addMessage(message, function(err){
+						//save each message
+						redis.addMessage(message, function(err){
 							if(err) {console.log(err);}
 							else{
 								var payload = {
 									Event : 'newMessage',
 									Id:message.message_id
 								}
+								//publish each message to Redis channel
 								notifier.notify(payload);
 							}
 						});
