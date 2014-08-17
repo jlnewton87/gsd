@@ -8,7 +8,11 @@ var ctxioClient = new ContextIO.Client({
 var client = {
 	getNewMessages : function(id, callback){
 		redisClient.getLastSeen(id, function(err, lastSeen){
-			ctxioClient.accounts(id).messages().get({date_after:lastSeen}, function(err, resp){
+			var options = {};
+			if (lastSeen) {
+				options = {date_after:lastSeen}
+			}
+			ctxioClient.accounts(id).messages().get(options, function(err, resp){
 				callback(err, resp)
 			});
 		});
