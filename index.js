@@ -1,29 +1,24 @@
 var async = require('async');
 var extras = require('./extras');
-var redis = require('./redisClient');
-var notices = require('notices')({
-	"host":"josh-redis.cloudapp.net"
-});
-var notifier = {};
-notices.notify(notifier);
+var persistence = require('./persistence');
 var emailApi = require('./contextIOClient');
-redis.redisClient.on("error", function (err) {
-    console.log("Error: " + err);
-});
+
+var newMessages = [];
 
 extras.initialize();
 
 execute();
 
 setInterval(function(){
+	newMessages = [];
 	execute();
 }, 60000);
 
+
 function execute(){
-	redis.getUsers(function(err, result){
+	persistence.getUsers(function(err, result){
 		if(err){console.log(err);}
 		else{
-			var newMessages = [];
 			async.each(result, function(user, callback){
 				//get new messages for each user
 				emailApi.getNewMessages(user.Id, function(err, resp){
@@ -33,7 +28,7 @@ function execute(){
 						newMessages.push(newMessage);
 					};
 					if (resp.body.length > 0) {
-						redis.setLastSeen(user.Id, resp.body[0].date);
+						persistence.setLastSeen(user.Id, resp.body[0].date);
 					}
 					callback();
 					//sync this account, so new messages can be picked up next time
@@ -44,16 +39,10 @@ function execute(){
 				else{
 					async.each(newMessages, function(message, callback){
 						//save each message
-						redis.addMessage(message, function(err){
+						persistence.addMessage(message, function(err){
 							if(err) {console.log(err);}
 							else{
-								var payload = {
-									Event : 'newMessage',
-									Id:message.message_id
-								}
-								//publish each message to Redis channel
-								console.log(payload);
-								notifier.notifyPublish('imappeeper:newMessage', payload);
+								console.log('Message: ' + message.message_id + ' has been processed');
 							}
 						});
 					});

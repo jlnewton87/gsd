@@ -1,4 +1,4 @@
-var redisClient = require('./redisClient');
+var persistence = require('./persistence');
 var ContextIO = require('contextio');
 var ctxioClient = new ContextIO.Client({
 	key: "x4h1wk9g",
@@ -7,7 +7,7 @@ var ctxioClient = new ContextIO.Client({
 
 var client = {
 	getNewMessages : function(id, callback){
-		redisClient.getLastSeen(id, function(err, lastSeen){
+		persistence.getLastSeen(id, function(err, lastSeen){
 			var options = {};
 			if (lastSeen) {
 				options = {date_after:lastSeen}
